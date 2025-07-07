@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model University {
+  id              Int            @id @default(autoincrement())
+  name            String         @unique
+  location        String
+  acceptanceRate  Float?
+  applicationLink String?
+  priority        Int?
+  programFocus    ProgramFocus[]
+  applications    Application[]
+  scholarships    Scholarship[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model ProgramFocus {
+  id           Int        @id @default(autoincrement())
+  name         String
+  university   University @relation(fields: [universityId], references: [id])
+  universityId Int
+}
+
+model Scholarship {
+  id             Int        @id @default(autoincrement())
+  name           String
+  acceptanceRate Float?
+  university     University @relation(fields: [universityId], references: [id])
+  universityId   Int
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Application {
+  id              Int               @id @default(autoincrement())
+  university      University        @relation(fields: [universityId], references: [id])
+  universityId    Int
+  profile         Profile           @relation(fields: [profileId], references: [id])
+  profileId       Int
+  status          String
+  applicationDate DateTime
+  notes           String?
+  checklists      ChecklistTemplate[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Profile {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  applications Application[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model ChecklistTemplate {
+  id            Int             @id @default(autoincrement())
+  name          String
+  application   Application?    @relation(fields: [applicationId], references: [id])
+  applicationId Int?
+  items         ChecklistItem[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model ChecklistItem {
+  id                  Int               @id @default(autoincrement())
+  name                String
+  completed           Boolean           @default(false)
+  ChecklistTemplate   ChecklistTemplate @relation(fields: [checklistTemplateId], references: [id])
+  checklistTemplateId Int
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
